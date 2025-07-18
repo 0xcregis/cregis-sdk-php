@@ -1,118 +1,64 @@
-# cregis-sdk-php
+# PHP Cregis SDK User Guide
 
-## Installation
-### Method 1: Command-line installation
+## I. Prerequisites
+- PHP version ≥ 7.0
+- [Composer](https://getcomposer.org/) installed (dependency management tool)
+- Project `.env` file configured
+
+---
+
+## II. SDK Installation
+Install the SDK to your project via Composer:
+```bash
+composer require cregis/cregis-sdk-php:^2.0
+```
+After installation, Composer will automatically handle dependencies and generate `vendor/autoload.php`, and the framework will automatically load the SDK libraries.
+
+---
+
+## III. Framework Integration Guide
+
+#### Add the following content to the .env file in the root directory
+```env
+## production or development environment
+ENVIRONMENT=production
+# API base URL (default value can be modified as needed)
+API_BASE_URI=https://t-xxxxxxx.cregis.io
+# API key
+API_KEY=16d4xxxxxxxxxxxxxxxxxxbd7895f4d
+# Project ID
+PID=1418xxxxxxxxxxx89664
+```
+
+####  Add references where needed
 ```php
-composer require cregis/cregis-sdk-php
+use Cregis\Services\PayoutService;
+use Cregis\Services\DepositService;
+use Cregis\Services\CallbackService;
+
 ```
-
-### Method 2: Installation via composer configuration
-1. Add the following configuration to your composer.json file:
-```php
-{
-    "require": {
-        "cregis/cregis-sdk-php": "^1.0"
-    }
-}
-```
-
-2. Run the command:
-```
-composer install
-```
-
-## Usage
-
-1. Create CregisController.php file:
-```php
-use Cregis\Dispatch\CregisDispatch;
-
-class CregisController {
-    protected $cregisDispatch;
-
-    public function __construct() {
-        // Controller initialization
-        $this->initialize();
-    }
-
-    protected function initialize() {
-        $this->cregisDispatch = new CregisDispatch([
-            'project_no' => 138XXXXXXXXXXX6576,  // Project number
-            'api_key' => 'XXXXXXXXXXXXXXXXXXXXXx',  // API key
-            'endpoint'=> 'https://xxxxxx.xxxxxx.xxx',  // Node address
-            'callUrl'=> 'https://localhost/callUrl'  // Recharge callback URL
-        ]);
-    }
-}
-```
-
-2. In the class where you need to use the API, extend CregisController:
+####  Example of creating an address, other examples can be found in demo.php in the SDK
 
 ```php
-## Example of usage
-namespace xxxx;
-
-class Index extends CregisController {
-    $project_no = 11112222;
-
-    // Get the supported currencies of the project
-    public function coinslist() {
-        $result =  $this->cregisDispatch->coinslist($project_no);
-        return json($result);
+    public function createAddress()
+    {
+            $depositService = new DepositService();
+            try {
+                $result = $depositService->createAddress([
+                    "callback_url"=> "http://xxxx.com/deposit/callback",
+                    "chain_id"=> "60",
+                    "alias"=> "cc",
+                ]);
+                echo "createAddress: " . json_encode($result, JSON_UNESCAPED_UNICODE) . "\n";
+            } catch (\Exception $e) {
+                echo "createAddress-error：" . $e->getMessage() . "\n";
+            }
+        return 'hello,' ;
     }
-
-    // Create an address: Parameters - project number, currency code, alias, callback URL
-    public function createAddress() {
-        $result =  $this->cregisDispatch->createAddress($project_no, 60, 'test01', $callUrl);
-        return json($result);
-    }
-
-    // Check the validity of an address: Parameters - project number, currency code, address
-    public function addressLegal() {
-        $result =  $this->cregisDispatch->addressLegal($project_no, 60, '0x8fabec737e3e724f1fc4537da44f84029c7879b9');
-        return json($result);
-    }
-
-    // Check if an address exists: Parameters - project number, currency code, address
-    public function addressInner() {
-        $result =  $this->cregisDispatch->addressInner($project_no, 60, '0x8fabec737e3e724f1fc4537da44f84029c7879b9');
-        return json($result);
-    }
-
-    // Apply for a withdrawal: Parameters - project number, currency code, address, amount, withdrawal callback URL, business reference number, note
-    public function withdraw() {
-        $result =  $this->cregisDispatch->payout($project_no, '60@60', '0x8fabec737e3e724f1fc4537da44f84029c7879b9', 0.05, $callUrl, "OR" . time(), 'Note');
-        return json($result);
-    }
-
-    // Query a withdrawal: Parameters - project number, order number
-    public function payoutQuery() {
-        $result =  $this->cregisDispatch->payoutQuery($project_no, 1390260293664768);
-        return json($result);
-    }
-
-    // Handle recharge transaction callback (Customize as per business requirements)
-    public function changeBackUrl() {
-        $result =  $this->cregisDispatch->changeBackUrl();
-        return json($result);
-    } 
-
-    // Handle withdrawal transaction callback (Customize as per business requirements)
-    public function withdrawalBackUrl() {
-        $result =  $this->cregisDispatch->withdrawalBackUrl();
-        return json($result);
-    } 
-}
 ```
+---
 
-## Others
-```
-##curl: (35) OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to raw.githubusercontent.com:443
-If you encounter the above error, you need to add a CA certificate.
-
-##Enable SSL in php.ini
-extension=php_openssl.dll;
-
-##Certificate path
-openssl.cafile=D:\cacert.pem
-```
+## IV. Notes
+- Ensure that the framework's `vendor/autoload.php` is correctly loaded (already handled by mainstream frameworks by default).
+- For production environments, set `ENVIRONMENT` to `production` in the `.env` file to avoid using test environment interfaces.
+- If the framework does not automatically load the `.env` file (e.g., ThinkPHP), you need to manually call `Dotenv\Dotenv::createImmutable(__DIR__)->load();` to load the configuration.
