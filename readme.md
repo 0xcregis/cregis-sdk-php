@@ -34,6 +34,7 @@ PID=1418xxxxxxxxxxx89664
 ```php
 use Cregis\Services\PayoutService;
 use Cregis\Services\DepositService;
+use Cregis\Services\CallbackService;
 
 ```
 ####  Example of creating an address, other examples can be found in demo.php in the SDK
